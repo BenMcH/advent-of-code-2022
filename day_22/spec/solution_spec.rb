@@ -1,3 +1,6 @@
+test_input = File.read('./test-input.txt')
+real_input = File.read('./input.txt')
+
 def solution_part_1
 	return 1
 end
