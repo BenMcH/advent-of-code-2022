@@ -1,16 +1,16 @@
 test_input = File.read('./test-input.txt').to_s
 real_input = File.read('./input')
 
-def solution_part_1(input)
-	elves = input.split("\n\n").map{|elf| elf.split("\n").map(&:to_i).sum}
+def calculate_elf_carry_weights(input)
+	return input.split("\n\n").map{|elf| elf.split("\n").map(&:to_i).sum}
+end
 
-	return elves.max
+def solution_part_1(input)
+	return calculate_elf_carry_weights(input).max
 end
 
 def solution_part_2(input)
-	elves = input.split("\n\n").map{|elf| elf.split("\n").map(&:to_i).sum}
-
-	return elves.sort[-3..].sum
+	return calculate_elf_carry_weights(input).sort[-3..].sum
 end
 
 describe "Day 1" do
