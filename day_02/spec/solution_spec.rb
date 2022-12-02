@@ -4,19 +4,15 @@ real_input = File.exists?('./input') ? File.read('./input') : ''
 THEIR_PLAYS = ('A'..'C').to_a
 MY_PLAYS = ('X'..'Z').to_a
 
-LOSE = 0
-DRAW = 3
-WIN = 6
-
 def score_round(them, me)
 	their_index = THEIR_PLAYS.index(them)
 	my_index = MY_PLAYS.index(me)
 
 	play_score = 1 + my_index
 
-	return play_score + DRAW if their_index == my_index
-	return play_score + WIN if (their_index + 1) % 3 == my_index
-	return play_score + LOSE
+	return play_score + 3 if their_index == my_index # draw
+	return play_score + 6 if (their_index + 1) % 3 == my_index # win
+	return play_score + 0 # lose
 end
 
 def score_games(input, replacement_map = nil)
@@ -30,7 +26,6 @@ def score_games(input, replacement_map = nil)
 end
 
 describe "Day 2" do
-
 	it "Part 1" do
 		scores = score_games(test_input)
 		expect(scores).to eq(15)
@@ -40,7 +35,6 @@ describe "Day 2" do
 	end
 
 	it "Part 2" do
-
 		win = 'X'
 		draw = 'Y'
 		lose = 'Z'
