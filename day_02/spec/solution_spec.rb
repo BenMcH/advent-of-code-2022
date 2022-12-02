@@ -1,16 +1,8 @@
 test_input = File.read('./test-input.txt')
 real_input = File.exists?('./input') ? File.read('./input') : ''
 
-THEIR_PLAYS = [
-	'A',
-	'B',
-	'C',
-]
-MY_PLAYS = [ 
-	'X',
-	'Y',
-	'Z',
- ]
+THEIR_PLAYS = ('A'..'C').to_a
+MY_PLAYS = ('X'..'Z').to_a
 
 LOSE = 0
 DRAW = 3
@@ -20,7 +12,7 @@ def score_round(them, me)
 	their_index = THEIR_PLAYS.index(them)
 	my_index = MY_PLAYS.index(me)
 
-	play_score = 1 + MY_PLAYS.index(me)
+	play_score = 1 + my_index
 
 	return play_score + DRAW if their_index == my_index
 	return play_score + WIN if (their_index + 1) % 3 == my_index
@@ -29,7 +21,7 @@ end
 
 def score_games(input, replacement_map = nil)
 	input.lines.map {|line|
-		them, me = *line.split(" ")
+		them, me = *line.split
 
 		me = replacement_map[[them, me]] if replacement_map
 
@@ -39,7 +31,7 @@ end
 
 describe "Day 2" do
 
-	it "Part 1 should pass" do
+	it "Part 1" do
 		scores = score_games(test_input)
 		expect(scores).to eq(15)
 
@@ -47,21 +39,22 @@ describe "Day 2" do
 		puts "Part 1 #{scores}"
 	end
 
-	PART_2_PLAY_MAP = {
-		['A', 'X'] => "Z",
-		['B', 'X'] => "X",
-		['C', 'X'] => "Y",
-		['A', 'Y'] => "X",
-		['B', 'Y'] => "Y",
-		['C', 'Y'] => "Z",
-		['A', 'Z'] => "Y",
-		['B', 'Z'] => "Z",
-		['C', 'Z'] => "X",
-	}
+	it "Part 2" do
 
-	it "Part 2 should pass" do
-		expect(score_games(test_input, PART_2_PLAY_MAP)).to eq(12)
+		win = 'X'
+		draw = 'Y'
+		lose = 'Z'
 
-		puts "Part 2 #{score_games(real_input, PART_2_PLAY_MAP)}"
+		part_2_play_map = {}
+
+		THEIR_PLAYS.product([win, draw, lose]).each do |group|
+			part_2_play_map[group] = group[1] == win ? MY_PLAYS[THEIR_PLAYS.index(group[0]) - 1] :
+															 group[1] == draw ? MY_PLAYS[THEIR_PLAYS.index(group[0])] :
+  															MY_PLAYS[(THEIR_PLAYS.index(group[0]) + 1) % 3] 
+		end
+
+		expect(score_games(test_input, part_2_play_map)).to eq(12)
+
+		puts "Part 2 #{score_games(real_input, part_2_play_map)}"
 	end
 end
