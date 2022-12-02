@@ -16,14 +16,6 @@ LOSE = 0
 DRAW = 3
 WIN = 6
 
-def solution_part_1(input)
-	return 1
-end
-
-def solution_part_2(input)
-	return 1
-end
-
 def score_round(them, me)
 	their_index = THEIR_PLAYS.index(them)
 	my_index = MY_PLAYS.index(me)
