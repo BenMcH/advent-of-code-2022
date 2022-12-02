@@ -19,32 +19,31 @@ WIN = 6
 def score_round(them, me)
 	their_index = THEIR_PLAYS.index(them)
 	my_index = MY_PLAYS.index(me)
-	return DRAW if their_index == my_index
-	return WIN if (their_index == 0 && my_index == 1) || (their_index == 1 && my_index == 2) || (their_index == 2 && my_index == 0)
-	return LOSE
+
+	play_score = 1 + MY_PLAYS.index(me)
+
+	return play_score + DRAW if their_index == my_index
+	return play_score + WIN if (their_index == 0 && my_index == 1) || (their_index == 1 && my_index == 2) || (their_index == 2 && my_index == 0)
+	return play_score + LOSE
+end
+
+def score_games(input, replacement_map = nil)
+	input.lines.map {|line|
+		them, me = *line.split(" ")
+
+		me = replacement_map[[them, me]] if replacement_map
+
+		score_round(them, me)
+	}.sum
 end
 
 describe "Day 2" do
 
-	def part_1(input)
-		input.lines.map {|line|
-		
-			them, me = *line.split(" ")
-
-			score = score_round(them, me)
-
-
-			play_score = 1 + MY_PLAYS.index(me)
-
-			score + play_score
-		}.sum
-	end
-
 	it "Part 1 should pass" do
-		scores = part_1(test_input)
+		scores = score_games(test_input)
 		expect(scores).to eq(15)
 
-		scores = part_1(real_input)
+		scores = score_games(real_input)
 		puts "Part 1 #{scores}"
 	end
 
@@ -60,25 +59,9 @@ describe "Day 2" do
 		['C', 'Z'] => "X",
 	}
 
-	def part_2(input)
-		input.lines.map {|line|
-		
-			them, me = *line.split(" ")
-
-			me = PART_2_PLAY_MAP[[them, me]]
-
-			score = score_round(them, me)
-
-
-			play_score = 1 + MY_PLAYS.index(me)
-
-			score + play_score
-		}.sum
-	end
-
 	it "Part 2 should pass" do
-		expect(part_2(test_input)).to eq(12)
+		expect(score_games(test_input, PART_2_PLAY_MAP)).to eq(12)
 
-		puts "Part 2 #{part_2(real_input)}"
+		puts "Part 2 #{score_games(real_input, PART_2_PLAY_MAP)}"
 	end
 end
