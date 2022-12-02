@@ -23,7 +23,7 @@ def score_round(them, me)
 	play_score = 1 + MY_PLAYS.index(me)
 
 	return play_score + DRAW if their_index == my_index
-	return play_score + WIN if (their_index == 0 && my_index == 1) || (their_index == 1 && my_index == 2) || (their_index == 2 && my_index == 0)
+	return play_score + WIN if (their_index + 1) % 3 == my_index
 	return play_score + LOSE
 end
 
