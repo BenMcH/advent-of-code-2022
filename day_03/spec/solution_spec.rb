@@ -19,16 +19,11 @@ def make_ruck(input)
 end
 
 def solution_part_1(input)
+	ans = 0
 	rucks = input.map do |line|
 		ruck = make_ruck(line)
 
-		ruck.compartment_1.intersection(ruck.compartment_2)[0]
-	end
-
-	ans = 0
-
-	rucks.each do |ruc|
-		ans += PRIORITIES.index(ruc)
+		ans += PRIORITIES.index(ruck.compartment_1.intersection(ruck.compartment_2)[0])
 	end
 
 	return ans
