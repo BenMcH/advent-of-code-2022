@@ -1,16 +1,8 @@
 require "net/http"
+require 'aoc/helpers'
 
 test_input = File.read('./test-input.txt')
-real_input = if File.exists?('./input')
-	File.read('./input')
-else
-	p "Requesting"
-	res = Net::HTTP.get_response(URI("https://adventofcode.com/2022/day/11/input"), {Cookie: "session=#{File.read("/home/vscode/.adventofcode.session")}", "User-Agent" => "Ben McHone <ben@mchone.dev>"})
-
-	File.write('./input', res.body)
-
-	res.body
-end
+real_input = Aoc::Helpers.get_input(2022, 11, File.read("/home/vscode/.adventofcode.session"))
 
 part_1_expected = 10605
 part_2_expected = 2713310158
@@ -64,6 +56,7 @@ end
 def round(monkeys, extra_worry = true)
 	max_test = monkeys.map(&:test).reduce(1){|acc, v| v * acc}
 	operations = []
+
 	monkeys.each do |monke|
 		operations << 0
 		until monke.starting_items.length == 0
