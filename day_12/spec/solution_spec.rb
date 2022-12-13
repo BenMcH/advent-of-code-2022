@@ -1,48 +1,13 @@
 require 'aoc/helpers'
 
 test_input = File.read('./test-input.txt')
-real_input = Aoc::Helpers.get_input(2022, 12, File.read("/home/vscode/.adventofcode.session"))
+real_input = get_input(2022, 12, File.read("/home/vscode/.adventofcode.session"))
 
 part_1_expected = 31
-part_2_expected = 2
-
-def is_upper(letter)
-	letter == letter.upcase
-end
+part_2_expected = 29
 
 def parse_board(input)
-	elevation_map = ('a'..'z').to_a
-	input.split("\n").map{|row| row.split("").map{|letter| is_upper(letter) ? letter : elevation_map.index(letter)}}
-end
-
-def walk(map, location, destination, visited = [])
-	visited_arr = visited.dup << location
-
-	row, col = *location
-
-	if location == destination
-		return visited_arr.length
-	end
-
-	neighbors = []
-
-	neighbors << [row-1, col] if row > 0
-	neighbors << [row+1, col] if row < map.length - 1
-	neighbors << [row, col - 1] if col > 0
-	neighbors << [row, col + 1] if col < map[0].length - 1
-
-	current_value = map[location[0]][location[1]]
-	neighbors = neighbors.filter {|v| map[v[0]][v[1]] -1  <= current_value && !visited_arr.include?(v)}
-
-	if neighbors.length == 0
-		return -1
-	end
-
-	return neighbors.map{|n| walk(map, n, destination, visited_arr)}.min
-end
-
-def solution_part_1(input)
-	input = parse_board(input)
+	input = lines(input).map{|l| characters(l).map{|letter| is_upper(letter) ? letter : ALPHABET.index(letter)}}
 
 	starting_location = nil
 	ending_location = nil
@@ -53,29 +18,91 @@ def solution_part_1(input)
 				starting_location = [i,j]
 			elsif col == 'E'
 				input[i][j] = 25
-				ending_location == [i,j]
+				ending_location = [i,j]
 			end
 		end
 	end
 
-	length = walk(input, starting_location, ending_location)
+	[input, starting_location, ending_location]
+end
 
-	return length
+def walk(map, location, destination, part_2 = false)
+	inf = 999999999
+	neighbors = [[0, location]]
+
+	distance_map = {}
+
+	until neighbors.empty?
+		n = neighbors.pop
+
+		distance, loc = *n
+
+		distance_map[loc] ||= inf
+
+		if distance_map[loc] <= distance
+			next
+		end
+
+		distance_map[loc] = distance
+
+		row, col = *loc
+
+		if row > 0 && map[row-1][col] <= map[row][col] + 1
+			nloc = [row-1, col]
+			if !distance_map[nloc] || distance_map[nloc] > distance + 1
+				neighbors << [distance + 1, nloc]
+				neighbors[-1][0] = 0 if map[nloc[0]][nloc[1]] == 0 && part_2
+			end
+		end
+		if row+1 < map.length && map[row+1][col] <= map[row][col]+1
+			nloc = [row+1, col]
+			if !distance_map[nloc] || distance_map[nloc] > distance + 1
+				neighbors << [distance + 1, nloc] 
+				neighbors[-1][0] = 0 if map[nloc[0]][nloc[1]] == 0 && part_2
+			end
+		end
+		if col > 0 && map[row][col-1] <= map[row][col]+1
+			nloc = [row, col - 1]
+			if !distance_map[nloc] || distance_map[nloc] > distance + 1
+				neighbors << [distance + 1, nloc] 
+				neighbors[-1][0] = 0 if map[nloc[0]][nloc[1]] == 0 && part_2
+			end
+		end
+		if col+1 < map[0].length && map[row][col+1] <= map[row][col]+1
+			nloc = [row, col + 1]
+			if !distance_map[nloc] || distance_map[nloc] > distance + 1
+				neighbors << [distance + 1, nloc] 
+				neighbors[-1][0] = 0 if map[nloc[0]][nloc[1]] == 0 && part_2
+			end
+		end
+	end
+
+	distance_map[destination] && distance_map[destination] || inf
+end
+
+def solution_part_1(input)
+	input, starting_location, ending_location = *parse_board(input)
+
+	return walk(input, starting_location, ending_location)
 end
 
 def solution_part_2(input)
-	return 2
+	input, starting_location, ending_location = *parse_board(input)
+
+	return walk(input, starting_location, ending_location, true)
 end
 
 describe "Day 12" do
 	
 	it "Part 1 should pass" do
 		expect(solution_part_1(test_input)).to eq(part_1_expected)
+		p "Passed"
 		p solution_part_1(real_input)
 	end
 
 	it "Part 2 should pass" do
 		expect(solution_part_2(test_input)).to eq(part_2_expected)
+		p "Passed"
 		p solution_part_2(real_input)
 	end
 end

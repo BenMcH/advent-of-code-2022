@@ -2,26 +2,45 @@
 require 'net/http'
 require_relative "helpers/version"
 
-module Aoc
-  module Helpers
-    class Error < StandardError; end
+# Constants
+ALPHABET = ('a'..'z').to_a
 
-    def self.get_input(year, day, session)
-      input = if File.exists?('./input')
-        File.read('./input')
-      else
-        puts "Requesting"
-        res = Net::HTTP.get_response(URI("https://adventofcode.com/#{year}/day/#{day}/input"), {Cookie: "session=#{session}", "User-Agent" => "Ben McHone <ben@mchone.dev>"})
-        body = res.body
+# AOC Interaction
+def get_input(year, day, session)
+  input = if File.exists?('./input')
+    File.read('./input')
+  else
+    puts "Requesting"
+    res = Net::HTTP.get_response(URI("https://adventofcode.com/#{year}/day/#{day}/input"), {Cookie: "session=#{session}", "User-Agent" => "Ben McHone <ben@mchone.dev>"})
+    body = res.body
 
-        if body.strip == "Please don't repeatedly request this endpoint before it unlocks! The calendar countdown is synchronized with the server time; the link will be enabled on the calendar the instant this puzzle becomes available."
-          throw Error.new("Puzzle input not open")
-        end
-
-        File.write('./input', res.body)
-
-        res.body
-      end
+    if body.strip == "Please don't repeatedly request this endpoint before it unlocks! The calendar countdown is synchronized with the server time; the link will be enabled on the calendar the instant this puzzle becomes available."
+      throw Error.new("Puzzle input not open")
     end
+
+    File.write('./input', res.body)
+
+    res.body
   end
+end
+
+# Strings
+def lines(string)
+  string.split("\n")
+end
+
+def characters(str_or_arr)
+  if str_or_arr.is_a? String
+    return str_or_arr.split('')
+  else
+    return str_or_arr.map{|line| characters(line)}
+  end
+end
+
+def split_arr(arr, index)
+  a, b = arr[0...index], arr[index..-1]
+end
+
+def is_upper(letter)
+	letter == letter.upcase
 end
