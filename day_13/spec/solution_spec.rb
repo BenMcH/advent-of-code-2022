@@ -4,7 +4,7 @@ test_input = File.read('./test-input.txt')
 real_input = get_input(2022, 13, File.read("/home/vscode/.adventofcode.session"))
 
 part_1_expected = 13
-part_2_expected = 2
+part_2_expected = 140
 
 def compare_index(l_val, r_val)
 	left_int = l_val.is_a? Integer
@@ -13,6 +13,7 @@ def compare_index(l_val, r_val)
 	if left_int == right_int && left_int # 2 Integers
 		return false if l_val > r_val
 		return true if l_val < r_val
+		return nil #keep checking
 	elsif left_int ^ right_int # 1 integer
 		if left_int
 			l_val = [l_val]
@@ -25,13 +26,12 @@ def compare_index(l_val, r_val)
 		cycles = 0
 		l_val.length.times do |i|
 			return false if i == r_val.length
-			return false if compare_index(l_val[i], r_val[i]) == false
+			ans = compare_index(l_val[i], r_val[i])
+			return ans if [true, false].include? ans
 			cycles+=1
 		end
 		
-		if cycles <= r_val.length
-			return true
-		end
+		return true if l_val.length < r_val.length
 	end
 end
 
@@ -42,13 +42,10 @@ def compare_packets(left, right)
 		r_val = right[i]
 
 		res = compare_index(l_val, r_val)
-		if res
-			return true
-		end
 
-		if res == false
-			return false
-		end
+		next if res.nil?
+
+		return res
 	end
 
 	return true	
@@ -65,13 +62,34 @@ def solution_part_1(input)
 			indicies << i + 1
 		end
 	end
-	p indicies
 
 	indicies.sum
 end
 
+def is_sorted(packets)
+	packets.each_cons(2).reduce(true) do |acc, value|
+		acc && compare_packets(value[0], value[1])
+	end
+end
+
 def solution_part_2(input)
-	return 2
+	packets = input.split("\n\n").flat_map{|group| lines(group).map{|v| eval(v)}}
+
+	decoder_packets = [[[2]], [[6]]]
+	
+	decoder_packets.each {|p| packets << p}
+
+	until is_sorted(packets)
+		packets.each_cons(2).with_index do |p, i|
+			left, right = *p
+
+			if compare_packets(left, right) == false
+				packets[i], packets[i+1] = packets[i+1], packets[i]
+			end
+		end
+	end
+	indicies = decoder_packets.map{|p| packets.index(p) + 1}
+	indicies.reduce(:*)
 end
 
 describe "Day 13" do
@@ -142,8 +160,8 @@ describe "Day 13" do
 		p solution_part_1(real_input)
 	end
 
-	# it "Part 2 should pass" do
-	# 	expect(solution_part_2(test_input)).to eq(part_2_expected)
-	# 	p solution_part_2(real_input)
-	# end
+	it "Part 2 should pass" do
+		expect(solution_part_2(test_input)).to eq(part_2_expected)
+		p solution_part_2(real_input)
+	end
 end
