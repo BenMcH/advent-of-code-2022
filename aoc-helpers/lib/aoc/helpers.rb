@@ -15,7 +15,7 @@ def get_input(year, day, session)
     body = res.body
 
     if body.strip == "Please don't repeatedly request this endpoint before it unlocks! The calendar countdown is synchronized with the server time; the link will be enabled on the calendar the instant this puzzle becomes available."
-      throw Error.new("Puzzle input not open")
+      throw Exception.new("Puzzle input not open")
     end
 
     File.write('./input', res.body)
@@ -43,4 +43,10 @@ end
 
 def is_upper(letter)
 	letter == letter.upcase
+end
+
+def get_numbers(str)
+  proc = Proc.new {|val| val.include?(".") ? val.to_f : val.to_i}
+
+  str.scan(/\d+\.\d+|\d+/).map(&proc)
 end
