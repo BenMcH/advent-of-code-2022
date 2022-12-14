@@ -1,3 +1,8 @@
+PATH
+  remote: ../aoc-helpers
+  specs:
+    aoc-helpers (0.1.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -20,6 +25,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  aoc-helpers!
   rspec (~> 3.12)
 
 BUNDLED WITH
