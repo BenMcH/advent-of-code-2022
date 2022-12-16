@@ -12,6 +12,7 @@ Sensor = Struct.new(
 	:cb_x,
 	:cb_y
 ) do
+
 	def distance
 		(x - cb_x).abs + (y - cb_y).abs
 	end
@@ -40,7 +41,7 @@ end
 def split_range(range, value_to_remove)
 	if range.cover?(value_to_remove)
 		[
-			(range.min...value_to_remove),
+			(range.min..value_to_remove-1),
 			(value_to_remove+1)..range.max
 		].filter{|r| !r.max.nil?}
 	else
@@ -78,13 +79,7 @@ def cannots(input, row)
 end
 
 def solution_part_1(input, row = 10)
-	input = parse_input(input)
-
-	cannots(input, row).map(&:count).sum
-end
-
-def tuning_freq(x, y)
-	x * 4000000 + y
+	cannots(parse_input(input), row).map(&:count).sum
 end
 
 def solution_part_2(input, max_coord = 20)
@@ -96,8 +91,7 @@ def solution_part_2(input, max_coord = 20)
 	end
 
 	(0..max_coord).each do |y|
-		ranges = cannots(input, y)#.filter{|r| overlaps?(r, 0..max_coord)}
-		ranges = sort_ranges(ranges)
+		ranges = cannots(input, y).sort {|a, b| a.min - b.min}
 
 		max = nil
 		ranges.each do |range|
@@ -105,19 +99,13 @@ def solution_part_2(input, max_coord = 20)
 				if range.min - max == 2 && all_points[y] && all_points[y].include?(max + 1)
 					max = range.max
 				else
-					return tuning_freq(max + 1, y)
+					return (max+1) * 4000000 + y
 				end
-			elsif range.cover?(0) || all_points[y].include?(0)
-				max = range.max
 			else
-				return tuning_freq(0, y)
+				max = range.max
 			end
 		end
 	end
-end
-
-def sort_ranges(ranges)
-	ranges.sort {|a, b| a.min - b.min}
 end
 
 describe "Day 15" do
