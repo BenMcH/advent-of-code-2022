@@ -13,11 +13,7 @@ Sensor = Struct.new(
 	:cb_y
 ) do
 	def distance
-		distance_to(cb_x, cb_y)
-	end
-
-	def distance_to(x2, y2)
-		(x - x2).abs + (y - y2).abs
+		(x - cb_x).abs + (y - cb_y).abs
 	end
 
 	def safe_row(row)
@@ -62,8 +58,6 @@ def cannots(input, row)
 	i = 0
 	while i < value.length
 		subject = value[i]
-
-		# p value
 		matches = value.filter{|f| overlaps?(f, subject) && f != subject}
 
 		if matches.any?
@@ -74,23 +68,17 @@ def cannots(input, row)
 				new_max = [m.max, value[i].max].max
 
 				value[i] = new_min..new_max
-				# p value
 			end
 		else
 			i += 1
 		end
 	end
 
-	# p pos.map( &:first ).sort
-
-	# pos.uniq.length
 	value
 end
 
 def solution_part_1(input, row = 10)
 	input = parse_input(input)
-
-	# print print_board(input)
 
 	cannots(input, row).map(&:count).sum
 end
@@ -108,35 +96,28 @@ def solution_part_2(input, max_coord = 20)
 	end
 
 	(0..max_coord).each do |y|
-		ranges = cannots(input, y).filter{|r| overlaps?(r, 0..max_coord)}
+		ranges = cannots(input, y)#.filter{|r| overlaps?(r, 0..max_coord)}
 		ranges = sort_ranges(ranges)
 
-		max = -1
+		max = nil
 		ranges.each do |range|
-			if max == -1
-				if range.cover?(0) || all_points[y].include?(0)
-					max = range.max
-				else
-					return tuning_freq(0, y)
-				end
-			else
+			if max
 				if range.min - max == 2 && all_points[y] && all_points[y].include?(max + 1)
 					max = range.max
 				else
 					return tuning_freq(max + 1, y)
 				end
+			elsif range.cover?(0) || all_points[y].include?(0)
+				max = range.max
+			else
+				return tuning_freq(0, y)
 			end
 		end
 	end
-	# return tuning_freq(14, 11)
 end
 
 def sort_ranges(ranges)
 	ranges.sort {|a, b| a.min - b.min}
-end
-
-def range_gaps(ranges, max_coord)
-	ranges = sort_ranges(ranges)
 end
 
 describe "Day 15" do
