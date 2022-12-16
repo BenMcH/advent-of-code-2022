@@ -48,5 +48,9 @@ end
 def get_numbers(str)
   proc = Proc.new {|val| val.include?(".") ? val.to_f : val.to_i}
 
-  str.scan(/\d+\.\d+|\d+/).map(&proc)
+  str.scan(/-?\d+\.\d+|-?\d+/).map(&proc)
+end
+
+def overlaps?(one, other)
+  one.cover?(other.first) || other.cover?(one.first)
 end
