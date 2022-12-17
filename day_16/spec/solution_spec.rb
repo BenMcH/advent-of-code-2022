@@ -64,14 +64,14 @@ def optimize_graph(input)
 	end
 end
 
-def maximize_walk(board, point = 'AA', minute_score = 0, minutes_left = 30, visited = [])
+def maximize_walk(board, minutes_left = 30, point = 'AA', minute_score = 0, visited = [])
 	valve = board[point]
 	visited = visited.dup
 
 	if valve.flow > 0 && !visited.include?(point)
 		visited << point
 
-		return minute_score + maximize_walk(board, point, minute_score+valve.flow, minutes_left - 1, visited)
+		return minute_score + maximize_walk(board, minutes_left - 1, point, minute_score+valve.flow, visited)
 	end
 
 	get_distance = Proc.new{|v| valve.optimized_tunnels[v]}
@@ -82,11 +82,15 @@ def maximize_walk(board, point = 'AA', minute_score = 0, minutes_left = 30, visi
 		return pointed.map{|t|
 			dist_to_t = valve.optimized_tunnels[t.identity]
 
-			minute_score * dist_to_t + maximize_walk(board, t.identity, minute_score, minutes_left - dist_to_t, visited)
+			minute_score * dist_to_t + maximize_walk(board, minutes_left - dist_to_t, t.identity, minute_score, visited)
 		}.max
 	end
 
-	return minute_score * minutes_left
+	if minutes_left > 0
+		return minute_score + maximize_walk(board, minutes_left - 1, point, minute_score, visited)
+	else
+		return 0
+	end
 end
 
 def solution_part_1(input)
