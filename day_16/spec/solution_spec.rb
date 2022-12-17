@@ -70,7 +70,10 @@ def optimize_graph(input)
 	end
 end
 
-def maximize_walk(board, valve_opener, visited = [])
+def maximize_walk(board, valve_openers, visited = [])
+	max_val = valve_openers.map(&:minutes_left).max
+	valve_opener_index = valve_openers.index{|v| v.minutes_left == max_val}
+	valve_opener = valve_openers[valve_opener_index]
 	valve = board[valve_opener.current_point]
 	visited = visited.dup
 
@@ -82,7 +85,10 @@ def maximize_walk(board, valve_opener, visited = [])
 		old_score = valve_opener.minute_score
 		valve_opener.minute_score += valve.flow
 
-		return old_score + maximize_walk(board, valve_opener, visited)
+		v = valve_openers.dup
+		v[valve_opener_index] = valve_opener
+
+		return old_score + maximize_walk(board, v, visited)
 	end
 
 	get_distance = Proc.new{|v| valve.optimized_tunnels[v]}
@@ -100,7 +106,10 @@ def maximize_walk(board, valve_opener, visited = [])
 			vo.minutes_left -= dist_to_t
 			old_score = valve_opener.minute_score
 
-			old_score * dist_to_t + maximize_walk(board, vo, visited)
+			v = valve_openers.dup
+			v[valve_opener_index] = vo
+
+			old_score * dist_to_t + maximize_walk(board, v, visited)
 		}.max
 	end
 
@@ -108,7 +117,10 @@ def maximize_walk(board, valve_opener, visited = [])
 		valve_opener = valve_opener.dup
 		valve_opener.minutes_left -= 1
 
-		return valve_opener.minute_score + maximize_walk(board, valve_opener, visited)
+		v = valve_openers.dup
+		v[valve_opener_index] = valve_opener
+
+		return valve_opener.minute_score + maximize_walk(board, v, visited)
 	else
 		return 0
 	end
@@ -121,7 +133,7 @@ def solution_part_1(input)
 
 	opener = ValveOpener.new(30, 'AA', 0)
 
-	maximize_walk(input, opener)
+	maximize_walk(input, [opener])
 end
 
 def solution_part_2(input)
