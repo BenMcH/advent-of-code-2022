@@ -6,11 +6,6 @@ real_input = get_input(2022, 16, File.read('/home/vscode/.adventofcode.session')
 part_1_expected = 1651
 part_2_expected = 1707
 
-Tunnel = Struct.new(
-	:destination,
-	:minutes
-)
-
 Valve = Struct.new(
 	:identity,
 	:flow,
@@ -70,14 +65,22 @@ def optimize_graph(input)
 	end
 end
 
-def maximize_walk(board, valve_openers, visited = [])
+def maximize_walk(board, valve_openers, visited = [], cache = {})
 	max_val = valve_openers.map(&:minutes_left).max
+
+
+	return [0, visited] if max_val == 0
+
 	valve_opener_index = valve_openers.index{|v| v.minutes_left == max_val}
 	valve_opener = valve_openers[valve_opener_index]
 	valve = board[valve_opener.current_point]
-	visited = visited.dup
+
+	state = [valve.identity, valve_opener.minutes_left, visited.dup]
+
+	return cache[state] if cache[state]
 
 	if valve.flow > 0 && !visited.include?(valve_opener.current_point)
+		visited = visited.dup
 		visited << valve_opener.current_point
 
 		valve_opener = valve_opener.dup
@@ -88,7 +91,8 @@ def maximize_walk(board, valve_openers, visited = [])
 		v = valve_openers.dup
 		v[valve_opener_index] = valve_opener
 
-		return old_score + maximize_walk(board, v, visited)
+		ans = maximize_walk(board, v, visited, cache)
+		return [old_score + ans[0], ans[1]]
 	end
 
 	get_distance = Proc.new{|v| valve.optimized_tunnels[v]}
@@ -98,7 +102,7 @@ def maximize_walk(board, valve_openers, visited = [])
 	distances = pointed.map{|p| get_distance.call(p.identity)}
 
 	if pointed.any?
-		return pointed.map{|t|
+		cache[state] ||= pointed.map{|t|
 			dist_to_t = valve.optimized_tunnels[t.identity]
 
 			vo = valve_opener.dup
@@ -109,21 +113,24 @@ def maximize_walk(board, valve_openers, visited = [])
 			v = valve_openers.dup
 			v[valve_opener_index] = vo
 
-			old_score * dist_to_t + maximize_walk(board, v, visited)
-		}.max
+			ans, new_visited = *maximize_walk(board, v, visited, cache)
+
+			[old_score * dist_to_t + ans, new_visited]
+		}.max do |a, b|
+			a[0] <=> b[0]
+		end
+
+		return cache[state]
 	end
 
-	if valve_opener.minutes_left > 0
-		valve_opener = valve_opener.dup
-		valve_opener.minutes_left -= 1
+	vo = valve_opener.dup
+	vo.minutes_left = 0
 
-		v = valve_openers.dup
-		v[valve_opener_index] = valve_opener
+	v = valve_openers.dup
+	v[valve_opener_index] = vo
+	ans, new_visited = *maximize_walk(board, v, visited, cache)
 
-		return valve_opener.minute_score + maximize_walk(board, v, visited)
-	else
-		return 0
-	end
+	return [valve_opener.minute_score * valve_opener.minutes_left + ans, new_visited]
 end
 
 def solution_part_1(input)
@@ -133,11 +140,20 @@ def solution_part_1(input)
 
 	opener = ValveOpener.new(30, 'AA', 0)
 
-	maximize_walk(input, [opener])
+	maximize_walk(input, [opener])[0]
 end
 
 def solution_part_2(input)
-	return 2
+	input = parse_input(input)
+
+	optimize_graph(input)
+
+	opener = ValveOpener.new(26, 'AA', 0)
+	opener2 = ValveOpener.new(26, 'AA', 0)
+
+	p1 = maximize_walk(input, [opener, opener2])
+
+	p1[0]
 end
 
 describe "Day 16" do
@@ -148,8 +164,9 @@ describe "Day 16" do
 		p solution_part_1(real_input)
 	end
 
-	it "Part 2 should pass", skip: true do
+	it "Part 2 should pass" do
 		expect(solution_part_2(test_input)).to eq(part_2_expected)
+		p "Passed 2"
 		p solution_part_2(real_input)
 	end
 end
