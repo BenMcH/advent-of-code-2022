@@ -12,7 +12,9 @@ Valve = Struct.new(
 	:tunnels,
 	:open,
 	:optimized_tunnels,
-)
+) do
+	def has_flow?; flow > 0 end
+end
 
 ValveOpener = Struct.new(
 	:minutes_left,
@@ -150,10 +152,26 @@ def solution_part_2(input)
 
 	opener = ValveOpener.new(26, 'AA', 0)
 	opener2 = ValveOpener.new(26, 'AA', 0)
+	max = 0
 
-	p1 = maximize_walk(input, [opener, opener2])
+	pointed = input.values.filter(&:has_flow?).map(&:identity)
 
-	p1[0]
+	cache = {}
+
+	2.times do |i|
+		count = pointed.length / 2 + i
+		combos = pointed.combination(count)
+		combos.each.with_index do |to_visit, idx|
+			v = pointed - to_visit
+
+			val, _ = *cache[v.sort] ||= (maximize_walk(input, [opener], v))
+			val2, _ = *cache[to_visit.sort] ||= (maximize_walk(input, [opener], to_visit))
+
+			max = val + val2 if val + val2 > max
+		end
+	end
+
+	max
 end
 
 describe "Day 16" do
