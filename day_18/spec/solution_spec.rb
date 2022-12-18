@@ -72,16 +72,11 @@ def surrounded(map, location, max, visited = [])
 	BORDER_MATRICES.all? do |direction|
 		new_loc = add_number_arrays(location, direction)
 
-		if map[new_loc] || visited.include?(new_loc)
-			true
-		else
-			if new_loc.any? {|v| v < 0 || v > max}
-				false
-			else
-				visited << new_loc
-				surrounded(map, new_loc, max, visited)
-			end
-		end
+		return false if new_loc.any? {|v| v < 0 || v > max}
+
+		s = map[new_loc] || visited.include?(new_loc)
+		visited << new_loc unless s
+		s || surrounded(map, new_loc, max, visited)
 	end
 end
 
