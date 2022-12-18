@@ -4,7 +4,7 @@ test_input = File.read('./test-input.txt')
 real_input = get_input(2022, 17, File.read('/home/vscode/.adventofcode.session'))
 
 part_1_expected = 3068
-part_2_expected = 2
+part_2_expected = 1514285714288
 
 def parse_input(input)
 	characters(input.strip)
@@ -93,18 +93,13 @@ def print_board(board, piece = nil, loc = nil)
 
 end
 
-def solution_part_1(input)
-	input = parse_input(input)
-	board = []
-	board[0] = ['#']*7
-	10_000.times do |i|
-		board << new_row
-	end
-
+def drop_blocks(board, input, count = 2022)
 	current_piece = 0
 	current_instruction = 0
 
-	2022.times do
+	cache = {}
+	additional_height = 0
+	while current_piece < count
 		piece = PIECES[current_piece%PIECES.length]
 
 		loc = [2, highest_rock(board) + 4]
@@ -123,15 +118,54 @@ def solution_part_1(input)
 		end
 
 		place_piece(board, piece, loc)
-
 		current_piece += 1
+
+		key = [piece, current_instruction%input.length, board.last(15).join("")]
+
+		if cache[key]
+			if cache[key][:count] > 1 # Ensure we don't have a false cycle due to hitting the ground instead of other pieces
+				new_height = highest_rock(board)
+				old_height = cache[key][:height]
+				height_diff = new_height - old_height
+				old_pieces = cache[key][:pieces]
+				cycle_len = current_piece - old_pieces
+				target_rocks = count
+
+				cycles = ((target_rocks - old_pieces) / cycle_len).floor - 1;
+
+				additional_height += cycles * height_diff
+				current_piece+= cycles * cycle_len
+			else
+				cache[key] = {height: highest_rock(board), pieces: current_piece, count: 2}
+			end
+		end
+
+		cache[key] ||= {height: highest_rock(board), pieces: current_piece, count: 1}
 	end
 
-	return highest_rock(board)
+	return highest_rock(board) + additional_height
+end
+
+def solution_part_1(input)
+	input = parse_input(input)
+	board = []
+	board[0] = ['#']*7
+	10_000.times do |i|
+		board << new_row
+	end
+
+	return drop_blocks(board, input, 2022)
 end
 
 def solution_part_2(input)
-	return 2
+	input = parse_input(input)
+	board = []
+	board[0] = ['#']*7
+	1_000_000.times do |i|
+		board << new_row
+	end
+
+	drop_blocks(board, input, 1_000_000_000_000)
 end
 
 describe "Day 17" do
@@ -141,7 +175,7 @@ describe "Day 17" do
 		p solution_part_1(real_input)
 	end
 
-	it "Part 2 should pass", skip: true do
+	it "Part 2 should pass" do
 		expect(solution_part_2(test_input)).to eq(part_2_expected)
 		p solution_part_2(real_input)
 	end
