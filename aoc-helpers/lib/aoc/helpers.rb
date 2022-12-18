@@ -54,3 +54,9 @@ end
 def overlaps?(one, other)
   one.cover?(other.first) || other.cover?(one.first)
 end
+
+def add_number_arrays(arr, arr2)
+  arr.map.with_index do |v, i|
+    v + arr2[i]
+  end
+end
