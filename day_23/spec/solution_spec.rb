@@ -4,7 +4,7 @@ test_input = File.read('./test-input.txt')
 real_input = get_input(2022, 23, File.read('/home/vscode/.adventofcode.session'))
 
 part_1_expected = 110
-part_2_expected = 2
+part_2_expected = 20
 
 def parse_input(input)
 	board = {}
@@ -49,8 +49,6 @@ def step(board, elf, round)
 	end
 
 	return elf
-
-	throw Exception.new("No next step. Top: #{top} bottom: #{bottom} right: #{right} left: #{left}")
 end
 
 def print_board(board)
@@ -73,14 +71,15 @@ ElfStep = Struct.new(
 )
 
 def round(board, round = 0)
-	p "Start round"
 	elves = board.keys
 
 	elves = elves.map{ElfStep.new(_1, step(board, _1, round))}
 
+	counts = elves.map(&:new_loc).tally
+
 	new_board = {}
 	elves.each do |elf|
-		count_same_loc = elves.count{_1.new_loc == elf.new_loc}
+		count_same_loc = counts[elf.new_loc]
 		if count_same_loc > 1
 			new_board[elf.old_loc] = ELF
 			next
@@ -95,11 +94,8 @@ end
 def solution_part_1(input)
 	board = parse_input(input)
 
-	# print_board(board)
-
 	10.times do |i|
 		board = round(board, i)
-		# print_board(board)
 	end
 
 	keys = board.keys
@@ -117,7 +113,18 @@ def solution_part_1(input)
 end
 
 def solution_part_2(input)
-	return 2
+	board = parse_input(input)
+
+	round = 0
+	loop do |i|
+		new_board = round(board, round)
+		round += 1
+
+		break if new_board == board
+		board = new_board
+	end
+
+	round
 end
 
 describe "Day 23" do
@@ -126,7 +133,7 @@ describe "Day 23" do
 		p solution_part_1(real_input)
 	end
 
-	it "Part 2 should pass", skip: true do
+	it "Part 2 should pass" do
 		expect(solution_part_2(test_input)).to eq(part_2_expected)
 		p solution_part_2(real_input)
 	end
